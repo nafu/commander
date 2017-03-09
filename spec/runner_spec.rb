@@ -263,6 +263,24 @@ describe Commander do
       expect(global_option).to eq('path')
       expect(command_option).to eq('bar')
     end
+
+    it 'should not disable local short options' do
+      global_option = nil
+      command_option = nil
+      new_command_runner('foo', '-p', 'bar') do
+        # Same at https://github.com/fastlane/fastlane/blob/42880c27c428b0875dc8dfbaba1ba14545f8a156/sigh/lib/sigh/commands_generator.rb#L25
+        global_option('-p', '--testing-command VALUE') { |v| global_option = v }
+
+        command :foo do |c|
+          # Same at https://github.com/fastlane/fastlane/blob/42880c27c428b0875dc8dfbaba1ba14545f8a156/sigh/lib/sigh/commands_generator.rb#L109
+          c.option('-p', '--duplicated-short-command VALUE') { |v| command_option = v }
+          c.when_called {}
+        end
+      end.run!
+
+      expect(global_option).to eq(nil)
+      expect(command_option).to eq('bar')
+    end
   end
 
   describe '#remove_global_options' do
@@ -323,6 +341,14 @@ describe Commander do
       options, args = [], []
       options << { switches: ['-v', '--version'] }
       args << '--versionCode' << 'something'
+      command_runner.remove_global_options options, args
+      expect(args).to eq(%w(--versionCode something))
+    end
+
+    it 'should remove options that start with a global short_option name' do
+      options, args = [], []
+      options << { switches: ['-v', '--versionCode'] }
+      args << '-v' << 'something'
       command_runner.remove_global_options options, args
       expect(args).to eq(%w(--versionCode something))
     end
