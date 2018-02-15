@@ -75,7 +75,7 @@ module Commander
           OptionParser::InvalidOption,
           OptionParser::InvalidArgument,
           OptionParser::MissingArgument => e
-          abort e.to_s
+          # abort e.to_s
         rescue => e
           if @never_trace
             abort "error: #{e}."
